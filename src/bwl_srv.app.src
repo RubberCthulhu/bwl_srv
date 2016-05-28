@@ -1,0 +1,14 @@
+{application, bwl_srv,
+ [{description, "BWL server"},
+  {vsn, "1.0"},
+  {modules, [bwl_srv_app,
+             bwl_srv_sup,
+             bwl_srv]},
+  {registered, [bwl_srv_sup]},
+  {applications, [kernel,
+                  stdlib]},
+  {mod, {bwl_srv_app, []}},
+  {env, []}
+ ]}.
+
+
