@@ -20,6 +20,52 @@
 
 
 %%% -------------------------------------------------------
+%%% Message records:
+%%% -------------------------------------------------------
+
+-record('NFR',
+	{'Session-Id', 'Origin-Host', 'Origin-Realm',
+	 'Destination-Realm', 'Auth-Application-Id',
+	 'Service-Type', 'Notification-Point',
+	 'Destination-Identity' = [],
+	 'Originating-Identity' = [], 'Destination-Host' = [],
+	 'Message-Reference' = [],
+	 'Parent-Message-Reference' = [], 'Msg-Content' = [],
+	 'Service-Info' = [], 'Opaque-Data' = [],
+	 'Request-Counter' = [], 'AVP' = []}).
+
+-record('NFA',
+	{'Session-Id', 'Origin-Host', 'Origin-Realm',
+	 'Auth-Application-Id', 'Result-Code',
+	 'Recommended-Decision',
+	 'Recommended-Decision-Reason' = [],
+	 'Originating-Identity' = [],
+	 'Destination-Identity' = [], 'Msg-Content' = [],
+	 'Service-Info' = [], 'Arm-Future-Notification' = [],
+	 'Opaque-Data' = [], 'Msg-Noncompliance-Code' = [],
+	 'AVP' = []}).
+
+
+%%% -------------------------------------------------------
+%%% Grouped AVP records:
+%%% -------------------------------------------------------
+
+-record('Destination-Identity',
+	{'Recipient-Address' = []}).
+
+-record('Originator-Address',
+	{'Address-Type' = [], 'Address-Data' = []}).
+
+-record('Originating-Identity',
+	{'Originator-Address' = []}).
+
+-record('Recipient-Address',
+	{'Address-Type' = [], 'Address-Data' = []}).
+
+-record('Service-Info', {'AVP' = []}).
+
+
+%%% -------------------------------------------------------
 %%% Grouped AVP records from diameter_gen_base_rfc3588:
 %%% -------------------------------------------------------
 
@@ -36,6 +82,38 @@
 	 'Acct-Application-Id' = []}).
 
 -record('E2E-Sequence', {'AVP' = []}).
+
+
+%%% -------------------------------------------------------
+%%% ENUM Macros:
+%%% -------------------------------------------------------
+
+-define('ADDRESS-TYPE_EMAIL', 0).
+-define('ADDRESS-TYPE_MSISDN', 1).
+-define('ADDRESS-TYPE_IPV4', 2).
+-define('ADDRESS-TYPE_IPV6', 3).
+-define('ADDRESS-TYPE_NUMERIC_SHORT_CODE', 4).
+-define('ADDRESS-TYPE_ALPHANUMERIC_SHORT_CODE', 5).
+-define('ADDRESS-TYPE_UNKNOWN', 6).
+-define('ADDRESS-TYPE_IMSI', 7).
+-define('ADDRESS-TYPE_SIP_URI', 8).
+-define('ARM-FUTURE-NOTIFICATION_ALL', 0).
+-define('ARM-FUTURE-NOTIFICATION_PRE_SUBMISSION', 1).
+-define('ARM-FUTURE-NOTIFICATION_POST_SUBMISSION', 2).
+-define('ARM-FUTURE-NOTIFICATION_PRE_DELIVERY', 3).
+-define('ARM-FUTURE-NOTIFICATION_POST_DELIVERY', 4).
+-define('NOTIFICATION-POINT_PRE_SUBMISSION', 1).
+-define('NOTIFICATION-POINT_POST_SUBMISSION', 2).
+-define('NOTIFICATION-POINT_PRE_DELIVERY', 3).
+-define('NOTIFICATION-POINT_POST_DELIVERY', 4).
+-define('RECOMMENDED-DECISION_PROCEED', 0).
+-define('RECOMMENDED-DECISION_REJECT', 1).
+-define('RECOMMENDED-DECISION_COMPLETE', 2).
+-define('RECOMMENDED-DECISION_DROP', 3).
+-define('SERVICE-TYPE_SMS', 0).
+-define('SERVICE-TYPE_MMS', 1).
+-define('SERVICE-TYPE_EMAIL', 2).
+
 
 
 %%% -------------------------------------------------------

@@ -22,9 +22,47 @@
 
 -compile(nowarn_unused_function).
 
--export_records(['Proxy-Info', 'Failed-AVP',
-		 'Experimental-Result', 'Vendor-Specific-Application-Id',
-		 'E2E-Sequence']).
+-export_records(['NFR', 'NFA', 'Destination-Identity',
+		 'Originator-Address', 'Originating-Identity',
+		 'Recipient-Address', 'Service-Info', 'Proxy-Info',
+		 'Failed-AVP', 'Experimental-Result',
+		 'Vendor-Specific-Application-Id', 'E2E-Sequence']).
+
+-record('NFR',
+	{'Session-Id', 'Origin-Host', 'Origin-Realm',
+	 'Destination-Realm', 'Auth-Application-Id',
+	 'Service-Type', 'Notification-Point',
+	 'Destination-Identity' = [],
+	 'Originating-Identity' = [], 'Destination-Host' = [],
+	 'Message-Reference' = [],
+	 'Parent-Message-Reference' = [], 'Msg-Content' = [],
+	 'Service-Info' = [], 'Opaque-Data' = [],
+	 'Request-Counter' = [], 'AVP' = []}).
+
+-record('NFA',
+	{'Session-Id', 'Origin-Host', 'Origin-Realm',
+	 'Auth-Application-Id', 'Result-Code',
+	 'Recommended-Decision',
+	 'Recommended-Decision-Reason' = [],
+	 'Originating-Identity' = [],
+	 'Destination-Identity' = [], 'Msg-Content' = [],
+	 'Service-Info' = [], 'Arm-Future-Notification' = [],
+	 'Opaque-Data' = [], 'Msg-Noncompliance-Code' = [],
+	 'AVP' = []}).
+
+-record('Destination-Identity',
+	{'Recipient-Address' = []}).
+
+-record('Originator-Address',
+	{'Address-Type' = [], 'Address-Data' = []}).
+
+-record('Originating-Identity',
+	{'Originator-Address' = []}).
+
+-record('Recipient-Address',
+	{'Address-Type' = [], 'Address-Data' = []}).
+
+-record('Service-Info', {'AVP' = []}).
 
 -record('Proxy-Info',
 	{'Proxy-Host', 'Proxy-State', 'AVP' = []}).
@@ -54,18 +92,33 @@ name() -> bwl_base.
 
 id() -> 16777275.
 
-vendor_id() -> erlang:error(undefined).
+vendor_id() -> 3830.
 
-vendor_name() -> erlang:error(undefined).
+vendor_name() -> 'Acision'.
 
+msg_name(8388623, true) -> 'NFR';
+msg_name(8388623, false) -> 'NFA';
 msg_name(_, _) -> ''.
 
+msg_header('NFR') -> {8388623, 128, 16777275};
+msg_header('NFA') -> {8388623, 0, 16777275};
 msg_header(_) -> erlang:error(badarg).
 
+rec2msg('NFR') -> 'NFR';
+rec2msg('NFA') -> 'NFA';
 rec2msg(_) -> erlang:error(badarg).
 
+msg2rec('NFR') -> 'NFR';
+msg2rec('NFA') -> 'NFA';
 msg2rec(_) -> erlang:error(badarg).
 
+name2rec('Destination-Identity') ->
+    'Destination-Identity';
+name2rec('Originator-Address') -> 'Originator-Address';
+name2rec('Originating-Identity') ->
+    'Originating-Identity';
+name2rec('Recipient-Address') -> 'Recipient-Address';
+name2rec('Service-Info') -> 'Service-Info';
 name2rec('Proxy-Info') -> 'Proxy-Info';
 name2rec('Failed-AVP') -> 'Failed-AVP';
 name2rec('Experimental-Result') ->
@@ -75,6 +128,36 @@ name2rec('Vendor-Specific-Application-Id') ->
 name2rec('E2E-Sequence') -> 'E2E-Sequence';
 name2rec(T) -> msg2rec(T).
 
+avp_name(897, 10415) -> {'Address-Data', 'UTF8String'};
+avp_name(899, 10415) -> {'Address-Type', 'Enumerated'};
+avp_name(1000, 3830) ->
+    {'Arm-Future-Notification', 'Enumerated'};
+avp_name(1001, 3830) ->
+    {'Destination-Identity', 'Grouped'};
+avp_name(1004, 3830) ->
+    {'Message-Reference', 'OctetString'};
+avp_name(1005, 3830) -> {'Msg-Content', 'OctetString'};
+avp_name(1091, 3830) ->
+    {'Msg-Noncompliance-Code', 'Unsigned32'};
+avp_name(1006, 3830) ->
+    {'Notification-Point', 'Enumerated'};
+avp_name(1007, 3830) -> {'Opaque-Data', 'OctetString'};
+avp_name(1009, 3830) ->
+    {'Originating-Identity', 'Grouped'};
+avp_name(886, 10415) ->
+    {'Originator-Address', 'Grouped'};
+avp_name(1010, 3830) ->
+    {'Parent-Message-Reference', 'OctetString'};
+avp_name(1201, 10415) ->
+    {'Recipient-Address', 'Grouped'};
+avp_name(1011, 3830) ->
+    {'Recommended-Decision', 'Enumerated'};
+avp_name(1092, 3830) ->
+    {'Recommended-Decision-Reason', 'Unsigned32'};
+avp_name(1031, 3830) ->
+    {'Request-Counter', 'Unsigned32'};
+avp_name(1029, 3830) -> {'Service-Info', 'Grouped'};
+avp_name(1028, 3830) -> {'Service-Type', 'Enumerated'};
 avp_name(483, undefined) ->
     {'Accounting-Realtime-Required', 'Enumerated'};
 avp_name(485, undefined) ->
@@ -170,6 +253,54 @@ avp_name(260, undefined) ->
     {'Vendor-Specific-Application-Id', 'Grouped'};
 avp_name(_, _) -> 'AVP'.
 
+avp_arity('NFR', 'Session-Id') -> 1;
+avp_arity('NFR', 'Origin-Host') -> 1;
+avp_arity('NFR', 'Origin-Realm') -> 1;
+avp_arity('NFR', 'Destination-Realm') -> 1;
+avp_arity('NFR', 'Auth-Application-Id') -> 1;
+avp_arity('NFR', 'Service-Type') -> 1;
+avp_arity('NFR', 'Notification-Point') -> 1;
+avp_arity('NFR', 'Destination-Identity') -> {1, '*'};
+avp_arity('NFR', 'Originating-Identity') -> {0, 1};
+avp_arity('NFR', 'Destination-Host') -> {0, 1};
+avp_arity('NFR', 'Message-Reference') -> {0, 1};
+avp_arity('NFR', 'Parent-Message-Reference') -> {0, 1};
+avp_arity('NFR', 'Msg-Content') -> {0, 1};
+avp_arity('NFR', 'Service-Info') -> {0, 1};
+avp_arity('NFR', 'Opaque-Data') -> {0, 1};
+avp_arity('NFR', 'Request-Counter') -> {0, 1};
+avp_arity('NFR', 'AVP') -> {0, '*'};
+avp_arity('NFA', 'Session-Id') -> 1;
+avp_arity('NFA', 'Origin-Host') -> 1;
+avp_arity('NFA', 'Origin-Realm') -> 1;
+avp_arity('NFA', 'Auth-Application-Id') -> 1;
+avp_arity('NFA', 'Result-Code') -> 1;
+avp_arity('NFA', 'Recommended-Decision') -> 1;
+avp_arity('NFA', 'Recommended-Decision-Reason') ->
+    {0, 1};
+avp_arity('NFA', 'Originating-Identity') -> {0, 1};
+avp_arity('NFA', 'Destination-Identity') -> {0, '*'};
+avp_arity('NFA', 'Msg-Content') -> {0, 1};
+avp_arity('NFA', 'Service-Info') -> {0, 1};
+avp_arity('NFA', 'Arm-Future-Notification') -> {0, 1};
+avp_arity('NFA', 'Opaque-Data') -> {0, 1};
+avp_arity('NFA', 'Msg-Noncompliance-Code') -> {0, '*'};
+avp_arity('NFA', 'AVP') -> {0, '*'};
+avp_arity('Destination-Identity',
+	  'Recipient-Address') ->
+    {0, '*'};
+avp_arity('Originator-Address', 'Address-Type') ->
+    {0, 1};
+avp_arity('Originator-Address', 'Address-Data') ->
+    {0, 1};
+avp_arity('Originating-Identity',
+	  'Originator-Address') ->
+    {0, '*'};
+avp_arity('Recipient-Address', 'Address-Type') ->
+    {0, 1};
+avp_arity('Recipient-Address', 'Address-Data') ->
+    {0, 1};
+avp_arity('Service-Info', 'AVP') -> {0, '*'};
 avp_arity('Proxy-Info', 'Proxy-Host') -> 1;
 avp_arity('Proxy-Info', 'Proxy-State') -> 1;
 avp_arity('Proxy-Info', 'AVP') -> {0, '*'};
@@ -190,6 +321,28 @@ avp_arity('Vendor-Specific-Application-Id',
 avp_arity('E2E-Sequence', 'AVP') -> {2, '*'};
 avp_arity(_, _) -> 0.
 
+avp_header('Address-Data') -> {897, 192, 10415};
+avp_header('Address-Type') -> {899, 192, 10415};
+avp_header('Arm-Future-Notification') ->
+    {1000, 192, 3830};
+avp_header('Destination-Identity') -> {1001, 192, 3830};
+avp_header('Message-Reference') -> {1004, 192, 3830};
+avp_header('Msg-Content') -> {1005, 192, 3830};
+avp_header('Msg-Noncompliance-Code') ->
+    {1091, 192, 3830};
+avp_header('Notification-Point') -> {1006, 192, 3830};
+avp_header('Opaque-Data') -> {1007, 192, 3830};
+avp_header('Originating-Identity') -> {1009, 192, 3830};
+avp_header('Originator-Address') -> {886, 192, 10415};
+avp_header('Parent-Message-Reference') ->
+    {1010, 192, 3830};
+avp_header('Recipient-Address') -> {1201, 192, 10415};
+avp_header('Recommended-Decision') -> {1011, 192, 3830};
+avp_header('Recommended-Decision-Reason') ->
+    {1092, 192, 3830};
+avp_header('Request-Counter') -> {1031, 192, 3830};
+avp_header('Service-Info') -> {1029, 192, 3830};
+avp_header('Service-Type') -> {1028, 192, 3830};
 avp_header('Accounting-Realtime-Required') ->
     diameter_gen_base_rfc3588:avp_header('Accounting-Realtime-Required');
 avp_header('Accounting-Record-Number') ->
@@ -292,6 +445,42 @@ avp_header('Vendor-Specific-Application-Id') ->
     diameter_gen_base_rfc3588:avp_header('Vendor-Specific-Application-Id');
 avp_header(_) -> erlang:error(badarg).
 
+avp(T, Data, 'Address-Data') ->
+    diameter_types:'UTF8String'(T, Data);
+avp(T, Data, 'Address-Type') ->
+    enumerated_avp(T, 'Address-Type', Data);
+avp(T, Data, 'Arm-Future-Notification') ->
+    enumerated_avp(T, 'Arm-Future-Notification', Data);
+avp(T, Data, 'Destination-Identity') ->
+    grouped_avp(T, 'Destination-Identity', Data);
+avp(T, Data, 'Message-Reference') ->
+    diameter_types:'OctetString'(T, Data);
+avp(T, Data, 'Msg-Content') ->
+    diameter_types:'OctetString'(T, Data);
+avp(T, Data, 'Msg-Noncompliance-Code') ->
+    diameter_types:'Unsigned32'(T, Data);
+avp(T, Data, 'Notification-Point') ->
+    enumerated_avp(T, 'Notification-Point', Data);
+avp(T, Data, 'Opaque-Data') ->
+    diameter_types:'OctetString'(T, Data);
+avp(T, Data, 'Originating-Identity') ->
+    grouped_avp(T, 'Originating-Identity', Data);
+avp(T, Data, 'Originator-Address') ->
+    grouped_avp(T, 'Originator-Address', Data);
+avp(T, Data, 'Parent-Message-Reference') ->
+    diameter_types:'OctetString'(T, Data);
+avp(T, Data, 'Recipient-Address') ->
+    grouped_avp(T, 'Recipient-Address', Data);
+avp(T, Data, 'Recommended-Decision') ->
+    enumerated_avp(T, 'Recommended-Decision', Data);
+avp(T, Data, 'Recommended-Decision-Reason') ->
+    diameter_types:'Unsigned32'(T, Data);
+avp(T, Data, 'Request-Counter') ->
+    diameter_types:'Unsigned32'(T, Data);
+avp(T, Data, 'Service-Info') ->
+    grouped_avp(T, 'Service-Info', Data);
+avp(T, Data, 'Service-Type') ->
+    enumerated_avp(T, 'Service-Type', Data);
 avp(T, Data, 'Accounting-Realtime-Required') ->
     diameter_gen_base_rfc3588:avp(T, Data,
 				  'Accounting-Realtime-Required');
@@ -426,8 +615,143 @@ avp(T, Data, 'Vendor-Specific-Application-Id') ->
     grouped_avp(T, 'Vendor-Specific-Application-Id', Data);
 avp(_, _, _) -> erlang:error(badarg).
 
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'Address-Type', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Address-Type', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'Address-Type', 2) ->
+    <<0, 0, 0, 2>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 3>>) ->
+    3;
+enumerated_avp(encode, 'Address-Type', 3) ->
+    <<0, 0, 0, 3>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 4>>) ->
+    4;
+enumerated_avp(encode, 'Address-Type', 4) ->
+    <<0, 0, 0, 4>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 5>>) ->
+    5;
+enumerated_avp(encode, 'Address-Type', 5) ->
+    <<0, 0, 0, 5>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 6>>) ->
+    6;
+enumerated_avp(encode, 'Address-Type', 6) ->
+    <<0, 0, 0, 6>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 7>>) ->
+    7;
+enumerated_avp(encode, 'Address-Type', 7) ->
+    <<0, 0, 0, 7>>;
+enumerated_avp(decode, 'Address-Type',
+	       <<0, 0, 0, 8>>) ->
+    8;
+enumerated_avp(encode, 'Address-Type', 8) ->
+    <<0, 0, 0, 8>>;
+enumerated_avp(decode, 'Arm-Future-Notification',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'Arm-Future-Notification', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'Arm-Future-Notification',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Arm-Future-Notification', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'Arm-Future-Notification',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'Arm-Future-Notification', 2) ->
+    <<0, 0, 0, 2>>;
+enumerated_avp(decode, 'Arm-Future-Notification',
+	       <<0, 0, 0, 3>>) ->
+    3;
+enumerated_avp(encode, 'Arm-Future-Notification', 3) ->
+    <<0, 0, 0, 3>>;
+enumerated_avp(decode, 'Arm-Future-Notification',
+	       <<0, 0, 0, 4>>) ->
+    4;
+enumerated_avp(encode, 'Arm-Future-Notification', 4) ->
+    <<0, 0, 0, 4>>;
+enumerated_avp(decode, 'Notification-Point',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Notification-Point', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'Notification-Point',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'Notification-Point', 2) ->
+    <<0, 0, 0, 2>>;
+enumerated_avp(decode, 'Notification-Point',
+	       <<0, 0, 0, 3>>) ->
+    3;
+enumerated_avp(encode, 'Notification-Point', 3) ->
+    <<0, 0, 0, 3>>;
+enumerated_avp(decode, 'Notification-Point',
+	       <<0, 0, 0, 4>>) ->
+    4;
+enumerated_avp(encode, 'Notification-Point', 4) ->
+    <<0, 0, 0, 4>>;
+enumerated_avp(decode, 'Recommended-Decision',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'Recommended-Decision', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'Recommended-Decision',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Recommended-Decision', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'Recommended-Decision',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'Recommended-Decision', 2) ->
+    <<0, 0, 0, 2>>;
+enumerated_avp(decode, 'Recommended-Decision',
+	       <<0, 0, 0, 3>>) ->
+    3;
+enumerated_avp(encode, 'Recommended-Decision', 3) ->
+    <<0, 0, 0, 3>>;
+enumerated_avp(decode, 'Service-Type',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'Service-Type', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'Service-Type',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Service-Type', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'Service-Type',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'Service-Type', 2) ->
+    <<0, 0, 0, 2>>;
 enumerated_avp(_, _, _) -> erlang:error(badarg).
 
+empty_value('Destination-Identity') ->
+    empty_group('Destination-Identity');
+empty_value('Originator-Address') ->
+    empty_group('Originator-Address');
+empty_value('Originating-Identity') ->
+    empty_group('Originating-Identity');
+empty_value('Recipient-Address') ->
+    empty_group('Recipient-Address');
+empty_value('Service-Info') ->
+    empty_group('Service-Info');
 empty_value('Proxy-Info') -> empty_group('Proxy-Info');
 empty_value('Failed-AVP') -> empty_group('Failed-AVP');
 empty_value('Experimental-Result') ->
@@ -436,6 +760,12 @@ empty_value('Vendor-Specific-Application-Id') ->
     empty_group('Vendor-Specific-Application-Id');
 empty_value('E2E-Sequence') ->
     empty_group('E2E-Sequence');
+empty_value('Address-Type') -> <<0, 0, 0, 0>>;
+empty_value('Arm-Future-Notification') ->
+    <<0, 0, 0, 0>>;
+empty_value('Notification-Point') -> <<0, 0, 0, 0>>;
+empty_value('Recommended-Decision') -> <<0, 0, 0, 0>>;
+empty_value('Service-Type') -> <<0, 0, 0, 0>>;
 empty_value('Disconnect-Cause') -> <<0, 0, 0, 0>>;
 empty_value('Redirect-Host-Usage') -> <<0, 0, 0, 0>>;
 empty_value('Auth-Request-Type') -> <<0, 0, 0, 0>>;
@@ -450,9 +780,63 @@ empty_value('Accounting-Realtime-Required') ->
 empty_value(Name) -> empty(Name).
 
 dict() ->
-    [1, {avp_types, []}, {avp_vendor_id, []}, {codecs, []},
-     {command_codes, []}, {custom_types, []}, {define, []},
-     {enum, []}, {grouped, []}, {id, 16777275},
+    [1,
+     {avp_types,
+      [{"Address-Data", 897, "UTF8String", "MV"},
+       {"Address-Type", 899, "Enumerated", "MV"},
+       {"Arm-Future-Notification", 1000, "Enumerated", "MV"},
+       {"Destination-Identity", 1001, "Grouped", "MV"},
+       {"Message-Reference", 1004, "OctetString", "MV"},
+       {"Msg-Content", 1005, "OctetString", "MV"},
+       {"Msg-Noncompliance-Code", 1091, "Unsigned32", "MV"},
+       {"Notification-Point", 1006, "Enumerated", "MV"},
+       {"Opaque-Data", 1007, "OctetString", "MV"},
+       {"Originating-Identity", 1009, "Grouped", "MV"},
+       {"Originator-Address", 886, "Grouped", "MV"},
+       {"Parent-Message-Reference", 1010, "OctetString", "MV"},
+       {"Recipient-Address", 1201, "Grouped", "MV"},
+       {"Recommended-Decision", 1011, "Enumerated", "MV"},
+       {"Recommended-Decision-Reason", 1092, "Unsigned32",
+	"MV"},
+       {"Request-Counter", 1031, "Unsigned32", "MV"},
+       {"Service-Info", 1029, "Grouped", "MV"},
+       {"Service-Type", 1028, "Enumerated", "MV"}]},
+     {avp_vendor_id,
+      [{10415,
+	["Address-Data", "Address-Type", "Originator-Address",
+	 "Recipient-Address"]}]},
+     {codecs, []},
+     {command_codes, [{8388623, "NFR", "NFA"}]},
+     {custom_types, []}, {define, []},
+     {enum,
+      [{"Address-Type",
+	[{"EMAIL", 0}, {"MSISDN", 1}, {"IPV4", 2}, {"IPV6", 3},
+	 {"NUMERIC_SHORT_CODE", 4},
+	 {"ALPHANUMERIC_SHORT_CODE", 5}, {"UNKNOWN", 6},
+	 {"IMSI", 7}, {"SIP_URI", 8}]},
+       {"Arm-Future-Notification",
+	[{"ALL", 0}, {"PRE_SUBMISSION", 1},
+	 {"POST_SUBMISSION", 2}, {"PRE_DELIVERY", 3},
+	 {"POST_DELIVERY", 4}]},
+       {"Notification-Point",
+	[{"PRE_SUBMISSION", 1}, {"POST_SUBMISSION", 2},
+	 {"PRE_DELIVERY", 3}, {"POST_DELIVERY", 4}]},
+       {"Recommended-Decision",
+	[{"PROCEED", 0}, {"REJECT", 1}, {"COMPLETE", 2},
+	 {"DROP", 3}]},
+       {"Service-Type",
+	[{"SMS", 0}, {"MMS", 1}, {"EMAIL", 2}]}]},
+     {grouped,
+      [{"Destination-Identity", 1001, [],
+	[{'*', ["Recipient-Address"]}]},
+       {"Originator-Address", 886, [],
+	[["Address-Type"], ["Address-Data"]]},
+       {"Originating-Identity", 1009, [],
+	[{'*', ["Originator-Address"]}]},
+       {"Recipient-Address", 1201, [],
+	[["Address-Type"], ["Address-Data"]]},
+       {"Service-Info", 1029, [], [{'*', ["AVP"]}]}]},
+     {id, 16777275},
      {import_avps,
       [{diameter_gen_base_rfc3588,
 	[{"Accounting-Realtime-Required", 483, "Enumerated",
@@ -550,6 +934,26 @@ dict() ->
 	   ["Acct-Application-Id"]]},
 	 {"E2E-Sequence", 300, [], [{{2, '*'}, {"AVP"}}]}]}]},
      {inherits, [{"diameter_gen_base_rfc3588", []}]},
-     {messages, []}].
+     {messages,
+      [{"NFR", 8388623, ['REQ'], [],
+	[{{"Session-Id"}}, {"Origin-Host"}, {"Origin-Realm"},
+	 {"Destination-Realm"}, {"Auth-Application-Id"},
+	 {"Service-Type"}, {"Notification-Point"},
+	 {'*', {"Destination-Identity"}},
+	 ["Originating-Identity"], ["Destination-Host"],
+	 ["Message-Reference"], ["Parent-Message-Reference"],
+	 ["Msg-Content"], ["Service-Info"], ["Opaque-Data"],
+	 ["Request-Counter"], {'*', ["AVP"]}]},
+       {"NFA", 8388623, [], [],
+	[{{"Session-Id"}}, {"Origin-Host"}, {"Origin-Realm"},
+	 {"Auth-Application-Id"}, {"Result-Code"},
+	 {"Recommended-Decision"},
+	 ["Recommended-Decision-Reason"],
+	 ["Originating-Identity"],
+	 {'*', ["Destination-Identity"]}, ["Msg-Content"],
+	 ["Service-Info"], ["Arm-Future-Notification"],
+	 ["Opaque-Data"], {'*', ["Msg-Noncompliance-Code"]},
+	 {'*', ["AVP"]}]}]},
+     {name, "bwl_base"}, {vendor, {3830, "Acision"}}].
 
 

@@ -1,5 +1,133 @@
 
 @id 16777275
-
+@name bwl_base
 @inherits diameter_gen_base_rfc3588
+@vendor 3830 Acision
+
+@avp_vendor_id 10415
+
+Address-Data
+Address-Type
+Originator-Address
+Recipient-Address
+
+@avp_types
+
+Address-Data                    897   UTF8String  MV
+Address-Type                    899   Enumerated  MV
+Arm-Future-Notification         1000  Enumerated  MV 
+Destination-Identity            1001  Grouped     MV
+Message-Reference               1004  OctetString MV
+Msg-Content                     1005  OctetString MV
+Msg-Noncompliance-Code          1091  Unsigned32  MV
+Notification-Point              1006  Enumerated  MV
+Opaque-Data                     1007  OctetString MV
+Originator-Address              886   Grouped     MV
+Originating-Identity            1009  Grouped     MV
+Parent-Message-Reference        1010  OctetString MV
+Recipient-Address               1201  Grouped     MV
+Recommended-Decision            1011  Enumerated  MV
+Recommended-Decision-Reason     1092  Unsigned32  MV
+Request-Counter                 1031  Unsigned32  MV
+Service-Info                    1029  Grouped     MV
+Service-Type                    1028  Enumerated  MV
+
+@messages
+
+NFR ::= < Diameter Header: 8388623, REQ >
+        < Session-Id >
+	{ Origin-Host }
+	{ Origin-Realm }
+	{ Destination-Realm }
+	{ Auth-Application-Id }
+	{ Service-Type }
+	{ Notification-Point }
+      * { Destination-Identity }
+	[ Originating-Identity ]
+	[ Destination-Host ]
+        [ Message-Reference ]
+	[ Parent-Message-Reference ]
+	[ Msg-Content ]
+	[ Service-Info ]
+	[ Opaque-Data ]
+	[ Request-Counter ]
+      * [ AVP ]
+
+NFA ::= < Diameter Header: 8388623 >
+        < Session-Id >
+	{ Origin-Host }
+	{ Origin-Realm }
+	{ Auth-Application-Id }
+	{ Result-Code }
+	{ Recommended-Decision }
+	[ Recommended-Decision-Reason ]
+	[ Originating-Identity ]
+      * [ Destination-Identity ]
+        [ Msg-Content ]
+	[ Service-Info ]
+	[ Arm-Future-Notification ]
+	[ Opaque-Data ]
+      * [ Msg-Noncompliance-Code ]
+      * [ AVP ]
+
+@enum Address-Type
+
+EMAIL			0
+MSISDN			1
+IPV4			2
+IPV6			3
+NUMERIC_SHORT_CODE	4
+ALPHANUMERIC_SHORT_CODE	5
+UNKNOWN		      	6
+IMSI		       	7
+SIP_URI		       	8
+
+@enum Arm-Future-Notification
+
+ALL			0
+PRE_SUBMISSION		1
+POST_SUBMISSION      	2
+PRE_DELIVERY         	3
+POST_DELIVERY         	4
+
+@enum Notification-Point
+
+PRE_SUBMISSION		1
+POST_SUBMISSION		2
+PRE_DELIVERY	       	3
+POST_DELIVERY	       	4
+
+@enum Recommended-Decision
+
+PROCEED			0
+REJECT		       	1
+COMPLETE		2
+DROP		       	3
+
+@enum Service-Type
+
+SMS			0
+MMS		   	1
+EMAIL		       	2
+
+@grouped
+
+Destination-Identity ::= < AVP Header: 1001 >
+		   * [ Recipient-Address ]
+
+Originator-Address ::= < AVP Header: 886 >
+                     [ Address-Type ]
+		     [ Address-Data ]
+
+Originating-Identity ::= < AVP Header: 1009 >
+		   * [ Originator-Address ]
+
+Recipient-Address ::= < AVP Header: 1201 >
+                     [ Address-Type ]
+		     [ Address-Data ]
+
+Service-Info ::= < AVP Header: 1029 >
+	           * [ AVP ]
+
+
 
