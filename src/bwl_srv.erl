@@ -34,6 +34,7 @@
 	  transport :: diameter:transport_ref()
 	 }).
 
+-include("bwl_base.hrl").
 -include_lib("diameter.hrl").
 -include_lib("diameter_gen_base_rfc3588.hrl").
 
@@ -74,7 +75,7 @@ init([]) ->
     SvcOpts = [{'Origin-Host', "bwlsrv.sk.ru"},
 	       {'Origin-Realm', "sk.ru"},
 	       {'Vendor-Specific-Application-Id',
-		[#'diameter_base_Vendor-Specific-Application-Id'{'Vendor-Id' = [0], 'Auth-Application-Id' = [16777275]}]
+		[#'diameter_base_Vendor-Specific-Application-Id'{'Vendor-Id' = [3830], 'Auth-Application-Id' = [16777275]}]
 	       },
 	       {'Vendor-Id', 0},
 	       {'Host-IP-Address', [{192, 168, 14, 74}]},
@@ -215,30 +216,36 @@ handle_answer(_Packet, _Request, _SvcName, _Peer) ->
 handle_error(_Reason, _Request, _SvcNAme, _Peer) ->
     ?UNEXPECTED.
 
-handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
-  when is_record(Req, diameter_base_CER) ->
-    error_logger:info_msg("CER", []);
-handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
-  when is_record(Req, diameter_base_ACR) ->
-    #diameter_caps{origin_host = {OH, _},
-		   origin_realm = {OR, _}
-		  } = Caps,
-    #diameter_base_ACR{'Session-Id' = Id,
-		       'Accounting-Record-Type' = RecType,
-		       'Accounting-Record-Number' = RecNum,
-		       'Acct-Application-Id' = _AccAppId
-		      } = Req,
-    
-    Ans = #diameter_base_ACA{
+handle_request(#diameter_packet{msg = Req, errors = Errors}, _SvcName, {_PeerRef, Caps})
+  when is_record(Req, bwl_NFR) ->
+    %%error_logger:info_msg("ERRORS: ~p", [Errors]),
+    #diameter_caps{
+       origin_host = {OrigHost, _},
+       origin_realm = {OrigRealm, _}
+      } = Caps,
+    #bwl_NFR{
+       'Session-Id' = SessionId,
+       'Originating-Identity' = OrigIdentity,
+       'Destination-Identity' = DestIdentity
+      } = Req,
+    Ans = #bwl_NFA{
+	     'Session-Id' = SessionId,
+	     'Origin-Host' = OrigHost,
+	     'Origin-Realm' = OrigRealm,
+	     'Auth-Application-Id' = 16777275,
 	     'Result-Code' = ?'DIAMETER_BASE_RESULT-CODE_DIAMETER_SUCCESS',
-	     'Origin-Host' = OH,
-	     'Origin-Realm' = OR,
-	     'Session-Id' = Id,
-	     'Accounting-Record-Type' = RecType,
-	     'Accounting-Record-Number' = RecNum
+	     'Recommended-Decision' = ?'BWL_RECOMMENDED-DECISION_PROCEED',
+	     'Recommended-Decision-Reason' = [0],
+	     'Originating-Identity' = OrigIdentity,
+	     'Destination-Identity' = DestIdentity
 	    },
-    {reply, Ans}.
+    {reply, Ans};
+handle_request(Packet, _SvcName, {_PeerRef, _Caps}) ->
+    error_logger:info_msg("PACKET: ~p", [Packet]),
+    discard.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+

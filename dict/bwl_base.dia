@@ -1,6 +1,7 @@
 
 @id 16777275
 @name bwl_base
+@prefix bwl
 @inherits diameter_gen_base_rfc3588
 @vendor 3830 Acision
 

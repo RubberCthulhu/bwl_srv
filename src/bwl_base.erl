@@ -22,13 +22,15 @@
 
 -compile(nowarn_unused_function).
 
--export_records(['NFR', 'NFA', 'Destination-Identity',
-		 'Originator-Address', 'Originating-Identity',
-		 'Recipient-Address', 'Service-Info', 'Proxy-Info',
-		 'Failed-AVP', 'Experimental-Result',
-		 'Vendor-Specific-Application-Id', 'E2E-Sequence']).
+-export_records([bwl_NFR, bwl_NFA,
+		 'bwl_Destination-Identity', 'bwl_Originator-Address',
+		 'bwl_Originating-Identity', 'bwl_Recipient-Address',
+		 'bwl_Service-Info', 'bwl_Proxy-Info', 'bwl_Failed-AVP',
+		 'bwl_Experimental-Result',
+		 'bwl_Vendor-Specific-Application-Id',
+		 'bwl_E2E-Sequence']).
 
--record('NFR',
+-record(bwl_NFR,
 	{'Session-Id', 'Origin-Host', 'Origin-Realm',
 	 'Destination-Realm', 'Auth-Application-Id',
 	 'Service-Type', 'Notification-Point',
@@ -39,7 +41,7 @@
 	 'Service-Info' = [], 'Opaque-Data' = [],
 	 'Request-Counter' = [], 'AVP' = []}).
 
--record('NFA',
+-record(bwl_NFA,
 	{'Session-Id', 'Origin-Host', 'Origin-Realm',
 	 'Auth-Application-Id', 'Result-Code',
 	 'Recommended-Decision',
@@ -50,33 +52,33 @@
 	 'Opaque-Data' = [], 'Msg-Noncompliance-Code' = [],
 	 'AVP' = []}).
 
--record('Destination-Identity',
+-record('bwl_Destination-Identity',
 	{'Recipient-Address' = []}).
 
--record('Originator-Address',
+-record('bwl_Originator-Address',
 	{'Address-Type' = [], 'Address-Data' = []}).
 
--record('Originating-Identity',
+-record('bwl_Originating-Identity',
 	{'Originator-Address' = []}).
 
--record('Recipient-Address',
+-record('bwl_Recipient-Address',
 	{'Address-Type' = [], 'Address-Data' = []}).
 
--record('Service-Info', {'AVP' = []}).
+-record('bwl_Service-Info', {'AVP' = []}).
 
--record('Proxy-Info',
+-record('bwl_Proxy-Info',
 	{'Proxy-Host', 'Proxy-State', 'AVP' = []}).
 
--record('Failed-AVP', {'AVP' = []}).
+-record('bwl_Failed-AVP', {'AVP' = []}).
 
--record('Experimental-Result',
+-record('bwl_Experimental-Result',
 	{'Vendor-Id', 'Experimental-Result-Code'}).
 
--record('Vendor-Specific-Application-Id',
+-record('bwl_Vendor-Specific-Application-Id',
 	{'Vendor-Id' = [], 'Auth-Application-Id' = [],
 	 'Acct-Application-Id' = []}).
 
--record('E2E-Sequence', {'AVP' = []}).
+-record('bwl_E2E-Sequence', {'AVP' = []}).
 
 -export([name/0, id/0, vendor_id/0, vendor_name/0,
 	 decode_avps/2, encode_avps/2, msg_name/2, msg_header/1,
@@ -104,28 +106,30 @@ msg_header('NFR') -> {8388623, 128, 16777275};
 msg_header('NFA') -> {8388623, 0, 16777275};
 msg_header(_) -> erlang:error(badarg).
 
-rec2msg('NFR') -> 'NFR';
-rec2msg('NFA') -> 'NFA';
+rec2msg(bwl_NFR) -> 'NFR';
+rec2msg(bwl_NFA) -> 'NFA';
 rec2msg(_) -> erlang:error(badarg).
 
-msg2rec('NFR') -> 'NFR';
-msg2rec('NFA') -> 'NFA';
+msg2rec('NFR') -> bwl_NFR;
+msg2rec('NFA') -> bwl_NFA;
 msg2rec(_) -> erlang:error(badarg).
 
 name2rec('Destination-Identity') ->
-    'Destination-Identity';
-name2rec('Originator-Address') -> 'Originator-Address';
+    'bwl_Destination-Identity';
+name2rec('Originator-Address') ->
+    'bwl_Originator-Address';
 name2rec('Originating-Identity') ->
-    'Originating-Identity';
-name2rec('Recipient-Address') -> 'Recipient-Address';
-name2rec('Service-Info') -> 'Service-Info';
-name2rec('Proxy-Info') -> 'Proxy-Info';
-name2rec('Failed-AVP') -> 'Failed-AVP';
+    'bwl_Originating-Identity';
+name2rec('Recipient-Address') ->
+    'bwl_Recipient-Address';
+name2rec('Service-Info') -> 'bwl_Service-Info';
+name2rec('Proxy-Info') -> 'bwl_Proxy-Info';
+name2rec('Failed-AVP') -> 'bwl_Failed-AVP';
 name2rec('Experimental-Result') ->
-    'Experimental-Result';
+    'bwl_Experimental-Result';
 name2rec('Vendor-Specific-Application-Id') ->
-    'Vendor-Specific-Application-Id';
-name2rec('E2E-Sequence') -> 'E2E-Sequence';
+    'bwl_Vendor-Specific-Application-Id';
+name2rec('E2E-Sequence') -> 'bwl_E2E-Sequence';
 name2rec(T) -> msg2rec(T).
 
 avp_name(897, 10415) -> {'Address-Data', 'UTF8String'};
@@ -954,6 +958,7 @@ dict() ->
 	 ["Service-Info"], ["Arm-Future-Notification"],
 	 ["Opaque-Data"], {'*', ["Msg-Noncompliance-Code"]},
 	 {'*', ["AVP"]}]}]},
-     {name, "bwl_base"}, {vendor, {3830, "Acision"}}].
+     {name, "bwl_base"}, {prefix, "bwl"},
+     {vendor, {3830, "Acision"}}].
 
 
